@@ -135,7 +135,7 @@ O sistema possui dois modos de operação:
 ### Online
 
 - Firebase Hosting
-- Cloudflare Tunnel
+- Ngrok
 - Sincronização automática
 
 ---
