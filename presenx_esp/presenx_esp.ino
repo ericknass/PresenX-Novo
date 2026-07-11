@@ -17,29 +17,17 @@ LiquidCrystal_I2C lcd(0x3F, 16, 2);
 
 // ===== WiFis =====
 const char* ssids[] = {
-  "EDUCACAO_COLEGIO",
-  "CETEP_WIFI",
-  "bahiabot",
-  "Jesus",
-  "a34"
+  "Exemplo"
 };
 
 const char* passwords[] = {
-  "bagovbr@",
-  "c3t3p#2025",
-  "bahiabot",
-  "nascimento2020",
-  "espcetep"
+  "Exemplo"
 };
 
 // ===== IPs DO NOTEBOOK EM CADA REDE =====
 // Modifique aqui pelos IPs REAIS que seu notebook recebe em cada rede.
 const char* ipsNotebook[] = {
-  "10.4.3.252",   // IP do notebook na rede EDUCACAO_COLEGIO
-  "10.0.0.100",     // IP do notebook na rede CETEP_WIFI
-  "192.168.0.15",   // IP do notebook na rede bahiabot
-  "192.168.0.107",     // IP do notebook na rede Jesus
-  "10.149.151.88"   // IP do notebook na rede a34
+  "Exemplo"
 };
 
 const int wifiCount = 5;
