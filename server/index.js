@@ -14,7 +14,7 @@ const PORT = 3000;
 // =========================
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://controledepresenca-99c9d-default-rtdb.firebaseio.com/"
+  databaseURL: "Exemplo"
 });
 
 const firebaseDb = admin.database();
