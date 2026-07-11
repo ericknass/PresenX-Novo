@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PresenX — Painel Digital de Comunicaçao Instituicional</title>
+  <meta name="description" content="Sistema digital de controle de presença para instituições de ensino. Registro automático por RFID, painel em tempo real e gestão centralizada." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+ <link rel="stylesheet" href="style.css">
+  
+</head>
+<body>
+
+  <!-- ── Nav ────────────────────────────────────────── -->
+  <nav class="nav">
+    <div class="nav-brand">
+      <div class="nav-logo">PX</div>
+      <span class="nav-name">PresenX</span>
+    </div>
+    <a href="#contato" class="nav-cta">Saiba mais</a>
+  </nav>
+
+  <!-- ── Hero ───────────────────────────────────────── -->
+  <section class="hero">
+
+    <div class="hero-content">
+
+      <div class="hero-tag">
+        <span class="hero-tag-dot"></span>
+        Sistema em operação · CETEP / LNAB
+      </div>
+
+      <h1 class="hero-headline">
+        Presença registrada.<br />
+        <em>Gestão informada.</em>
+      </h1>
+
+      <p class="hero-sub">
+        PresenX é um sistema de controle de presença para instituições de ensino.
+        Registro automático por crachá RFID, painel em tempo real nas TVs da escola
+        e gestão centralizada — tudo funcionando offline e sincronizado com a nuvem.
+      </p>
+
+      <div class="hero-actions">
+        <a href="#simulador-live" class="btn-primary">Testar Simulador Live</a>
+        <a href="#como-funciona" class="btn-ghost">Como funciona →</a>
+      </div>
+
+    </div>
+
+    <!-- Mockup animado do painel -->
+    <div class="hero-mockup">
+      <div class="mockup-screen">
+
+        <div class="mockup-topbar">
+          <div class="mockup-brand">
+            <div class="mockup-logo">PX</div>
+            <span class="mockup-title">PresenX</span>
+          </div>
+          <div class="mockup-clock" id="mockClock">--:--:--</div>
+        </div>
+
+        <div class="mockup-grade" id="mockGrade">
+          <!-- Preenchido pelo JS -->
+        </div>
+
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ── Simulador Live ────────────────────────────── -->
+  <section class="section-simulador" id="simulador-live">
+    <div class="section-header text-center">
+      <p class="section-label">Simulador Online</p>
+      <h2 class="section-title">PresenX Live Sandbox</h2>
+      <p class="section-sub text-center-sub">
+        Experimente na prática as duas pontas do sistema: a aproximação de crachás no leitor ESP32 e o painel administrativo de gestão em tempo real.
+      </p>
+    </div>
+
+    <div class="simulador-workspace">
+      <!-- LADO ESQUERDO: CONTROLES -->
+      <div class="simulador-controles">
+        
+        <!-- Abas -->
+        <div class="simulador-tabs">
+          <button class="tab-btn active" id="btn-rfid-tab" onclick="switchTab('rfid-tab')">
+            <span class="tab-icon">💳</span> Leitor ESP32 / RFID
+          </button>
+          <button class="tab-btn" id="btn-gestao-tab" onclick="switchTab('gestao-tab')">
+            <span class="tab-icon">🔐</span> Gestão Escolar (Firebase)
+          </button>
+        </div>
+
+        <!-- Conteúdo Aba 1: RFID/ESP32 -->
+        <div id="rfid-tab" class="tab-content active">
+          <div class="tab-instruction">
+            <p><strong>Passo 1:</strong> Clique em um crachá de professor abaixo para simular a aproximação física dele ao leitor RFID do CETEP.</p>
+          </div>
+          
+          <!-- Lista de Crachás Simulados -->
+          <div class="crachas-grid" id="crachasGrid">
+            <!-- Inserido dinamicamente pelo JS -->
+          </div>
+
+          <!-- Representação do Hardware ESP32 -->
+          <div class="hardware-box">
+            <div class="esp32-board">
+              <div class="esp32-body">
+                <span class="esp32-chip">ESP32-WROOM-32</span>
+                <div class="esp32-led" id="espLed"></div>
+                <div class="esp32-antenna"></div>
+              </div>
+              <div class="rfid-reader">
+                <div class="rfid-icon">((( 💳 )))</div>
+                <span class="rfid-label">Leitor RFID-RC522</span>
+              </div>
+            </div>
+            
+            <div class="terminal-box">
+              <div class="terminal-header">
+                <span class="terminal-dot red-dot"></span>
+                <span class="terminal-dot yellow-dot"></span>
+                <span class="terminal-dot green-dot"></span>
+                <span class="terminal-title">terminal@esp32:~</span>
+              </div>
+              <div class="terminal-body" id="terminalLog">
+                <div class="term-line system">[INFO] Inicializando RFID Reader RC522...</div>
+                <div class="term-line system">[INFO] Pronto para leitura. Clique em um crachá acima.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Conteúdo Aba 2: Gestão Escolar -->
+        <div id="gestao-tab" class="tab-content">
+          <!-- FLUXO DE LOGIN MOCK -->
+          <div id="gestao-login-flow" class="gestao-card">
+            <div class="gestao-card-header">
+              <h3>Autenticação de Gestor</h3>
+              <p>Acesse a área restrita protegida por Firebase Auth</p>
+            </div>
+            <div class="gestao-form-group">
+              <label for="gestao-email">E-mail Administrativo</label>
+              <input type="email" id="gestao-email" value="direcao@cetep.edu.br" readonly />
+            </div>
+            <div class="gestao-form-group">
+              <label for="gestao-pass">Senha de Acesso</label>
+              <input type="password" id="gestao-pass" value="••••••••" readonly />
+            </div>
+            <button class="btn-primary w-100" id="gestaoLoginBtn" onclick="simularLogin()">
+              Entrar no Administrativo
+            </button>
+            <p class="gestao-hint">Nota: As credenciais estão pré-preenchidas para demonstração.</p>
+          </div>
+
+          <!-- ÁREA ADMINISTRATIVA PRIVADA (Invisível por padrão) -->
+          <div id="gestao-admin-area" class="gestao-card" style="display: none;">
+            <div class="gestao-admin-header">
+              <div class="gestao-user-info">
+                <span class="user-avatar">👤</span>
+                <div>
+                  <h4 class="admin-user-name">Diretoria CETEP</h4>
+                  <span class="admin-role">Sessão Firebase Ativa</span>
+                </div>
+              </div>
+              <button class="btn-logout" onclick="simularLogout()">Sair</button>
+            </div>
+
+            <!-- Mini KPIs -->
+            <div class="admin-kpis">
+              <div class="admin-kpi">
+                <span class="admin-kpi-val" id="adminKpiTotal">8</span>
+                <span class="admin-kpi-label">Cadastrados</span>
+              </div>
+              <div class="admin-kpi present">
+                <span class="admin-kpi-val" id="adminKpiPresent">0</span>
+                <span class="admin-kpi-label">Presentes</span>
+              </div>
+              <div class="admin-kpi absent">
+                <span class="admin-kpi-val" id="adminKpiAbsent">8</span>
+                <span class="admin-kpi-label">Ausentes</span>
+              </div>
+            </div>
+
+            <!-- Ações Rápidas -->
+            <div class="admin-actions">
+              <div class="admin-section-title">📢 Publicar Aviso no Painel</div>
+              <div class="admin-form">
+                <input type="text" id="avisoText" placeholder="Ex: Reunião pedagógica às 16h no auditório..." />
+                <div class="aviso-type-row">
+                  <label><input type="radio" name="avisoPriority" value="normal" checked /> Normal</label>
+                  <label><input type="radio" name="avisoPriority" value="urgente" /> Urgente</label>
+                  <label><input type="radio" name="avisoPriority" value="alerta" /> Alerta ⚠️</label>
+                </div>
+                <button class="btn-primary w-100" onclick="publicarAviso()">Enviar para o Painel da Escola</button>
+              </div>
+
+              <div class="admin-section-title" style="margin-top: 20px;">📑 Relatórios de Presença</div>
+              <button class="btn-secondary w-100" onclick="exportarRelatorioCSV()">
+                📥 Gerar e Exportar CSV (.csv)
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- LADO DIREITO: MOCKUP DE TV (PAINEL ESCOLAR) -->
+      <div class="simulador-painel-tv">
+        <div class="tv-bezel">
+          <div class="tv-screen">
+            <!-- Estrutura simplificada de painel.html -->
+            <div class="tv-header">
+              <div class="tv-brand">
+                <div class="tv-logo">CETEP</div>
+                <div class="tv-brand-info">
+                  <div class="tv-brand-title">PresenX</div>
+                  <div class="tv-brand-sub">CETEP / LNAB</div>
+                </div>
+              </div>
+              <div class="tv-clock-box">
+                <div class="tv-date" id="tvDate">10/07/2026</div>
+                <div class="tv-time" id="tvTime">18:30:00</div>
+              </div>
+            </div>
+
+            <div class="tv-meta-row">
+              <div class="tv-meta-left">
+                <span class="tv-day-label" id="tvDay">Sexta-feira</span>
+                <span class="tv-chip select-chip">1º Horário</span>
+                <span class="tv-chip">Vespertino</span>
+              </div>
+              <div class="tv-legend">
+                <span class="leg-item"><span class="leg-dot green"></span> Presente</span>
+                <span class="leg-item"><span class="leg-dot red"></span> Ausente</span>
+                <span class="leg-item"><span class="leg-dot gray"></span> Sem aula</span>
+              </div>
+            </div>
+
+            <div class="tv-main-content">
+              <!-- Grade de Turmas (70% de largura) -->
+              <div class="tv-turmas-grid" id="tvTurmasGrid">
+                <!-- Populado dinamicamente -->
+              </div>
+              
+              <!-- Painel Lateral de Avisos e Eventos (30% de largura) -->
+              <div class="tv-sidebar">
+                <div class="tv-sidebar-box">
+                  <div class="tv-sidebar-title">📢 Avisos da Gestão</div>
+                  <div class="tv-sidebar-list" id="tvAvisosList">
+                    <!-- Dinâmico -->
+                  </div>
+                </div>
+
+                <div class="tv-sidebar-box">
+                  <div class="tv-sidebar-title">🗓️ Próximos Eventos</div>
+                  <div class="tv-sidebar-list">
+                    <div class="tv-event-item">
+                      <div class="tv-event-date">15 Jul</div>
+                      <div class="tv-event-desc">Conselho de Classe Geral</div>
+                    </div>
+                    <div class="tv-event-item">
+                      <div class="tv-event-date">24 Jul</div>
+                      <div class="tv-event-desc">Feira de Ciências PresenX</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="tv-footer">
+              <span>Painel Digital Escolar em Tempo Real · PresenX Live</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Como funciona ──────────────────────────────── -->
+  <section class="section" id="como-funciona">
+    <div class="section-header">
+      <p class="section-label">Como funciona</p>
+      <h2 class="section-title">Simples para o professor.<br />Poderoso para a gestão.</h2>
+      <p class="section-sub">Três etapas automáticas — sem digitar nada, sem abrir nenhum sistema.</p>
+    </div>
+
+    <div class="steps">
+
+      <div class="step reveal">
+        <div class="step-num">1</div>
+        <div class="step-icon">💳</div>
+        <div class="step-title">Crachá aproximado</div>
+        <p class="step-desc">O professor aproxima o crachá RFID do leitor instalado na entrada. O processo inteiro leva menos de um segundo.</p>
+      </div>
+
+      <div class="step reveal reveal-delay-2">
+        <div class="step-num">2</div>
+        <div class="step-icon">⚡</div>
+        <div class="step-title">Registro automático</div>
+        <p class="step-desc">O ESP32 lê o UID e envia para o servidor local. O horário de entrada é registrado imediatamente no banco de dados.</p>
+      </div>
+
+      <div class="step reveal reveal-delay-4">
+        <div class="step-num">3</div>
+        <div class="step-icon">📺</div>
+        <div class="step-title">Painel atualizado</div>
+        <p class="step-desc">O painel nas TVs da escola reflete o status em tempo real — verde para presente, vermelho para ausente. Sem ação humana.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── Features ───────────────────────────────────── -->
+  <section class="section section-alt">
+    <div class="section-header">
+      <p class="section-label">Funcionalidades</p>
+      <h2 class="section-title">Tudo que a gestão precisa.</h2>
+    </div>
+
+    <div class="features-grid">
+
+      <div class="feature reveal">
+        <div class="feature-icon">📺</div>
+        <div class="feature-title">Painel em tempo real</div>
+        <p class="feature-desc">Exibe o status de todas as turmas nas TVs da escola, atualizado automaticamente a cada segundo.</p>
+      </div>
+
+      <div class="feature reveal reveal-delay-1">
+        <div class="feature-icon">💳</div>
+        <div class="feature-title">Registro por RFID</div>
+        <p class="feature-desc">Leitura instantânea do crachá pelo ESP32. Nenhum professor precisa tocar em tela ou digitar qualquer coisa.</p>
+      </div>
+
+      <div class="feature reveal reveal-delay-2">
+        <div class="feature-icon">📊</div>
+        <div class="feature-title">Relatórios e exportação</div>
+        <p class="feature-desc">Filtra presenças por data e professor. Exporta relatório em CSV com um clique para análises externas.</p>
+      </div>
+
+      <div class="feature reveal reveal-delay-3">
+        <div class="feature-icon">📢</div>
+        <div class="feature-title">Avisos da gestão</div>
+        <p class="feature-desc">Publique avisos urgentes, informativos ou normais diretamente no painel. Com validade e prioridade configuráveis.</p>
+      </div>
+
+      <div class="feature reveal reveal-delay-4">
+        <div class="feature-icon">🌐</div>
+        <div class="feature-title">Online e offline</div>
+        <p class="feature-desc">Funciona 100% na rede local sem depender de internet. Quando conectado, sincroniza automaticamente com a nuvem.</p>
+      </div>
+
+      <div class="feature reveal reveal-delay-5">
+        <div class="feature-icon">🔐</div>
+        <div class="feature-title">Acesso protegido</div>
+        <p class="feature-desc">Painel público para visualização. Gestão restrita por autenticação Firebase, com proteção contra tentativas de acesso indevido.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── Case Study ─────────────────────────────────── -->
+  <section class="section" id="case">
+    <div class="case-inner">
+
+      <div class="reveal">
+        <span class="case-tag">Caso de uso</span>
+        <p class="case-text">
+          O PresenX foi <strong>desenvolvido </strong> para o
+          <strong>CETEP / LNAB</strong>, em Alagoinhas-BA — uma instituição pública de
+          ensino técnico com múltiplos turnos, dezenas de turmas e centenas de professores.
+          O sistema substituiu o controle manual e trouxe visibilidade em tempo real
+          para toda a gestão escolar.
+        </p>
+
+        <div class="case-stats">
+          <div>
+            <div class="stat-num">3</div>
+            <div class="stat-label">Turnos monitorados</div>
+          </div>
+          <div>
+            <div class="stat-num">20+</div>
+            <div class="stat-label">Turmas por horário</div>
+          </div>
+          <div>
+            <div class="stat-num">100%</div>
+            <div class="stat-label">Automático</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mini painel estático decorativo -->
+      <div class="case-visual reveal reveal-delay-2">
+        <div class="case-topbar">
+          <span class="case-chip">Vespertino</span>
+          <span class="case-chip">3º horário</span>
+          <span class="case-chip">Sexta-feira</span>
+        </div>
+        <div class="case-grid">
+          <div class="case-card"><div class="case-turma">1TACV1</div><div class="case-disc">Geografia</div></div>
+          <div class="case-card r"><div class="case-turma">1TELEV1</div><div class="case-disc">Matemática</div></div>
+          <div class="case-card"><div class="case-turma">1TIV1</div><div class="case-disc">Sociologia</div></div>
+          <div class="case-card"><div class="case-turma">2TACV1</div><div class="case-disc">Inglês</div></div>
+          <div class="case-card r"><div class="case-turma">2TIV1</div><div class="case-disc">Banco de Dados</div></div>
+          <div class="case-card g"><div class="case-turma">2TNDV1</div><div class="case-disc">Sem aula</div></div>
+          <div class="case-card"><div class="case-turma">3TIV1</div><div class="case-disc">Robótica</div></div>
+          <div class="case-card"><div class="case-turma">3TMAV1</div><div class="case-disc">Física</div></div>
+          <div class="case-card r"><div class="case-turma">3TNDV1</div><div class="case-disc">Sociologia</div></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── Open Source ───────────────────────────────── -->
+  <section class="section section-alt open-source-section" id="opensource">
+    <div class="opensource-shell reveal">
+      <div class="opensource-copy">
+        <span class="section-label">Código Aberto</span>
+        <h2 class="section-title">O PresenX pode inspirar uma nova geração de soluções públicas, acessíveis e replicáveis.</h2>
+        <p class="section-sub">
+          O projeto nasceu para reduzir a burocracia no controle de presença e mostrar que tecnologia de verdade pode servir à educação pública com baixo custo, simplicidade e impacto real. Ao abrir o PresenX como código aberto, escolas, comunidades e estudantes podem estudar, adaptar e replicar o sistema com um hardware acessível, em torno de menos de R$ 90 por ponto de leitura.
+        </p>
+
+        <div class="opensource-pills">
+          <span class="opensource-pill">Impacto social</span>
+          <span class="opensource-pill">Baixo custo</span>
+          <span class="opensource-pill">Replicável</span>
+        </div>
+
+        <div class="opensource-actions">
+          <a href="https://github.com/" target="_blank" rel="noopener noreferrer" class="btn-primary open-source-cta">
+            <svg class="github-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 .5C5.65.5.5 5.65 5.65 12 0 20 0 24 4 24 8.9c0 3.9-2.6 7.2-6.2 8.4-.5.1-.7-.2-.7-.5v-2c0-.9-.3-1.5-.7-1.8 2.4-.3 4.9-1.2 4.9-5.3 0-1.2-.4-2.2-1.1-3-.1-.2-.5-1 .1-2.1 0 0 .9-.3 2.9 1.1.8-.2 1.7-.3 2.6-.3s1.8.1 2.6.3c2-.4 2.9-1.1 2.9-1.1.6 1.1.2 1.9.1 2.1.7.8 1.1 1.8 1.1 3 0 4.1-2.5 5-4.9 5.3.4.3.7.9.7 1.8v2.7c0 .3-.2.6-.7.5A9.2 9.2 0 0 1 2 8.9C2 4 5.65.5 12 .5Z"/>
+            </svg>
+            Acessar GitHub do projeto
+          </a>
+          <p class="opensource-note">Contribuições, melhorias e adaptações são bem-vindas.</p>
+        </div>
+      </div>
+
+      <div class="opensource-card reveal reveal-delay-2">
+        <div class="opensource-card-top">
+          <div class="opensource-card-badge">Open Source</div>
+          <div class="opensource-card-price">~ R$ 90</div>
+        </div>
+        <div class="opensource-card-body">
+          <h3>Por que isso importa?</h3>
+          <ul class="opensource-list">
+            <li>Hardware simples, acessível e fácil de montar.</li>
+            <li>Mais autonomia para a escola e menos dependência de soluções caras.</li>
+            <li>A comunidade pode melhorar o sistema e adaptar para cada contexto.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Seção Contato & FAQ ────────────────────────── -->
+  <section class="section section-alt" id="contato">
+    <div class="section-header text-center">
+      <p class="section-label">Contato & FAQ</p>
+      <h2 class="section-title">Ficou com alguma dúvida?</h2>
+      <p class="section-sub text-center-sub">Entre em contato conosco ou tire suas dúvidas sobre a implantação do PresenX.</p>
+    </div>
+
+    <div class="contato-container">
+      
+      <!-- Formulário de Contato -->
+      <div class="contato-form-box">
+        <h3 class="contato-box-title">Envie uma mensagem</h3>
+        <p class="contato-box-desc">Quer adotar o PresenX na sua escola ou colaborar com o projeto? Fale com a equipe.</p>
+        
+        <form id="contactForm" name="contato" data-netlify="true" onsubmit="event.preventDefault(); enviarContato();">
+          <input type="hidden" name="form-name" value="contato" />
+          <div class="form-group-row">
+            <div class="form-group">
+              <label for="contact-name">Seu Nome</label>
+              <input type="text" id="contact-name" name="nome" placeholder="Ex: Prof. Carlos" required />
+            </div>
+            <div class="form-group">
+              <label for="contact-email">Seu E-mail</label>
+              <input type="email" id="contact-email" name="email" placeholder="Ex: carlos@escola.com" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="contact-subject">Assunto</label>
+            <input type="text" id="contact-subject" name="assunto" placeholder="Ex: Quero implantar na minha escola" required />
+          </div>
+          <div class="form-group">
+            <label for="contact-message">Sua Mensagem</label>
+            <textarea id="contact-message" name="mensagem" rows="4" placeholder="Escreva sua mensagem aqui..." required></textarea>
+          </div>
+          <button type="submit" class="btn-primary w-100" id="contactSubmitBtn">Enviar Mensagem</button>
+        </form>
+        
+        <div id="contactSuccess" class="contact-success-msg" style="display: none;">
+          <span class="success-icon">✓</span>
+          <div>
+            <h4>Mensagem Enviada!</h4>
+            <p>Obrigado pelo contato. Nossa equipe responderá em breve.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- FAQ Accordion -->
+      <div class="faq-box">
+        <h3 class="contato-box-title">Perguntas Frequentes</h3>
+        
+        <div class="faq-list">
+          <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+              <span>Como o PresenX funciona offline?</span>
+              <span class="faq-arrow">▼</span>
+            </button>
+            <div class="faq-answer">
+              <p>O servidor local (instalado na secretaria ou coordenação) armazena todos os registros localmente em rede interna. O sistema de TV e a gestão funcionam 100% sem internet. Quando há conexão, o servidor sincroniza os dados agregados para a nuvem Firebase automaticamente.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+              <span>Qual o custo do hardware (ESP32 / RFID)?</span>
+              <span class="faq-arrow">▼</span>
+            </button>
+            <div class="faq-answer">
+              <p>O custo é extremamente baixo. A placa ESP32, o leitor RFID RC522 e a fonte custam menos de R$ 90 no total. Os crachás de professores ou chaveiros RFID individuais custam em média R$ 2 a unidade, tornando o projeto muito acessível para escolas públicas.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+              <span>Outras escolas podem adotar o sistema?</span>
+              <span class="faq-arrow">▼</span>
+            </button>
+            <div class="faq-answer">
+              <p>Sim! O PresenX foi idealizado como um projeto de código aberto (Open Source). Toda a documentação técnica para montagem do circuito com ESP32 e o código fonte do sistema web podem ser fornecidos para implantação em qualquer escola pública ou privada.</p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+              <span>Como os professores registram a presença?</span>
+              <span class="faq-arrow">▼</span>
+            </button>
+            <div class="faq-answer">
+              <p>Basta aproximar o crachá do leitor na entrada da escola por menos de 1 segundo. O leitor emite um aviso sonoro, o LED fica verde, e o status nas TVs é atualizado em tempo real. O professor não precisa abrir computadores ou fazer chamadas manuais em papel.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── Footer ─────────────────────────────────────── -->
+  <footer class="footer">
+    <div class="footer-brand">
+      <div class="footer-logo">PX</div>
+      <span class="footer-name">PresenX</span>
+    </div>
+    <p class="footer-copy">© 2026 · Desenvolvido para o CETEP/LNAB · Alagoinhas-BA</p>
+  </footer>
+  <script src="js.js"></script>
+</body>
+</html>

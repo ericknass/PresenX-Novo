@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PresenX | Login Gestão</title>
+  <link rel="stylesheet" href="./css/cetep.css" />
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">PX</div>
+      <div>
+        <div class="title">PresenX</div>
+        <div class="subtitle">Login da Gestão</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container login-screen">
+    <section class="card login-card">
+      <h2 class="login-title">Acesso restrito</h2>
+      <p class="login-sub">
+        Entre com o email e senha do administrador.
+      </p>
+
+      <div class="row">
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" type="email" placeholder="seuemail@gmail.com" autocomplete="username" />
+        </div>
+
+        <div class="field">
+          <label for="senha">Senha</label>
+          <input id="senha" type="password" placeholder="********" autocomplete="current-password" />
+        </div>
+
+        <div class="field">
+          <button id="btnLogin" class="pill">
+            Entrar
+          </button>
+        </div>
+
+        <div id="msgErro" class="login-error"></div>
+      </div>
+    </section>
+  </main>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCn1VnvKTRW5o-Aw-kbToLXKh1TjlpRGqs",
+    authDomain: "controledepresenca-99c9d.firebaseapp.com",
+    databaseURL: "https://controledepresenca-99c9d-default-rtdb.firebaseio.com",
+    projectId: "controledepresenca-99c9d",
+    storageBucket: "controledepresenca-99c9d.appspot.com",
+    messagingSenderId: "680348803999",
+    appId: "1:680348803999:web:3ee50102433449fc6213aa"
+  };
+
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+
+  const btnLogin  = document.getElementById("btnLogin");
+  const msgErro   = document.getElementById("msgErro");
+  const emailInput = document.getElementById("email");
+  const senhaInput = document.getElementById("senha");
+
+  // ── Proteção contra brute force ──────────────────────
+  // Persiste no localStorage para sobreviver a refreshes de página.
+  const CHAVE_TENTATIVAS  = "px_login_tentativas";
+  const CHAVE_BLOQUEADO   = "px_login_bloqueado_ate";
+  const MAX_TENTATIVAS    = 5;
+  // Tempos de bloqueio por rodada: 30s, 60s, 120s, 300s (5min), 900s (15min)
+  const TEMPOS_BLOQUEIO   = [30, 60, 120, 300, 900];
+
+  let contadorTimer = null;
+
+  function obterTentativas()  { return parseInt(localStorage.getItem(CHAVE_TENTATIVAS)  || "0"); }
+  function obterBloqueadoAte(){ return parseInt(localStorage.getItem(CHAVE_BLOQUEADO)   || "0"); }
+
+  function registrarFalha() {
+    const tentativas = obterTentativas() + 1;
+    localStorage.setItem(CHAVE_TENTATIVAS, tentativas);
+
+    if (tentativas >= MAX_TENTATIVAS) {
+      const rodada   = Math.floor(tentativas / MAX_TENTATIVAS) - 1;
+      const espera   = (TEMPOS_BLOQUEIO[Math.min(rodada, TEMPOS_BLOQUEIO.length - 1)] || 900) * 1000;
+      const ate      = Date.now() + espera;
+      localStorage.setItem(CHAVE_BLOQUEADO, ate);
+      iniciarContagemRegressiva(ate);
+    }
+  }
+
+  function limparBloqueio() {
+    localStorage.removeItem(CHAVE_TENTATIVAS);
+    localStorage.removeItem(CHAVE_BLOQUEADO);
+    clearInterval(contadorTimer);
+  }
+
+  function iniciarContagemRegressiva(ate) {
+    clearInterval(contadorTimer);
+    atualizarMensagemBloqueio(ate);
+    contadorTimer = setInterval(() => {
+      if (Date.now() >= ate) {
+        clearInterval(contadorTimer);
+        msgErro.textContent = "";
+        btnLogin.disabled = false;
+        btnLogin.textContent = "Entrar";
+        return;
+      }
+      atualizarMensagemBloqueio(ate);
+    }, 1000);
+  }
+
+  function atualizarMensagemBloqueio(ate) {
+    const seg = Math.ceil((ate - Date.now()) / 1000);
+    msgErro.textContent = `Muitas tentativas. Aguarde ${seg}s para tentar novamente.`;
+    btnLogin.disabled = true;
+    btnLogin.textContent = "Bloqueado";
+  }
+
+  // Verifica se já há bloqueio ativo ao carregar a página
+  const bloqueadoAte = obterBloqueadoAte();
+  if (bloqueadoAte > Date.now()) {
+    iniciarContagemRegressiva(bloqueadoAte);
+  }
+
+  // ── Login ─────────────────────────────────────────────
+  async function entrar() {
+    // Rejeita imediatamente se ainda bloqueado
+    const bloqueio = obterBloqueadoAte();
+    if (bloqueio > Date.now()) {
+      iniciarContagemRegressiva(bloqueio);
+      return;
+    }
+
+    const email = emailInput.value.trim();
+    const senha = senhaInput.value.trim();
+
+    if (!email || !senha) {
+      msgErro.textContent = "Preencha email e senha.";
+      return;
+    }
+
+    msgErro.textContent = "";
+    btnLogin.disabled = true;
+    btnLogin.textContent = "Entrando...";
+
+    try {
+      await firebase.auth().signInWithEmailAndPassword(email, senha);
+      limparBloqueio(); // login bem-sucedido — zera contadores
+      window.location.replace("./gestao.html");
+    } catch (error) {
+      console.error(error);
+      registrarFalha();
+      const restantes = MAX_TENTATIVAS - (obterTentativas() % MAX_TENTATIVAS);
+      if (obterBloqueadoAte() <= Date.now()) {
+        // Ainda não bloqueado — mostra quantas tentativas restam
+        msgErro.textContent = restantes < MAX_TENTATIVAS
+          ? `Credenciais inválidas. Mais ${restantes} tentativa(s) antes do bloqueio.`
+          : "Email ou senha inválidos.";
+        btnLogin.disabled = false;
+        btnLogin.textContent = "Entrar";
+      }
+    }
+  }
+
+  btnLogin.addEventListener("click", entrar);
+
+  [emailInput, senhaInput].forEach((input) => {
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") entrar();
+    });
+  });
+
+  firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+      window.location.replace("./gestao.html");
+    }
+  });
+
+</script>
+</body>
+</html>
